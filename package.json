@@ -1,0 +1,6 @@
+{
+  "name": "nexy-live",
+  "scripts": {
+    "start": "npx serve -s . -l $PORT"
+  }
+}
