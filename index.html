@@ -228,6 +228,12 @@
     @media (prefers-reduced-motion: reduce) {
       .sphere, .ring { animation: none; }
     }
+
+    #vapi-support-btn,
+    [id^="vapi-"],
+    [class^="vapi-"] {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
@@ -265,18 +271,24 @@
   </div>
 
   <script>
-    (function(d, t) {
+    const PUBLIC_KEY = '1fb6beeb-c606-4390-8f75-7894249bac0b';
+    const ASSISTANT_ID = 'a9735b99-0fe6-446c-86f1-7e50d6ce53b2';
+
+    (function (d, t) {
       var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
-      g.src = "https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi.js";
-      g.onload = initVapi;
+      g.src = "https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js";
+      g.defer = true;
+      g.async = true;
       s.parentNode.insertBefore(g, s);
+      g.onload = initVapi;
     })(document, 'script');
 
     function initVapi() {
-      const PUBLIC_KEY = '1fb6beeb-c606-4390-8f75-7894249bac0b';
-      const ASSISTANT_ID = 'a9735b99-0fe6-446c-86f1-7e50d6ce53b2';
-
-      const vapi = new window.Vapi(PUBLIC_KEY);
+      const vapi = window.vapiSDK.run({
+        apiKey: PUBLIC_KEY,
+        assistant: ASSISTANT_ID,
+        config: {}
+      });
 
       const sphere = document.getElementById('sphere');
       const statusEl = document.getElementById('status');
