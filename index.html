@@ -326,8 +326,8 @@
           analyser.getByteFrequencyData(dataArray);
           animateBars(dataArray);
           const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-          const scale = 1 + (avg / 255) * 0.15;
-          const glow = Math.round(40 + (avg / 255) * 40);
+          const scale = 1 + (avg / 255) * 0.35;
+          const glow = Math.round(40 + (avg / 255) * 80);
           sphere.style.transform = `scale(${scale})`;
           sphere.style.boxShadow = `0 0 ${glow}px rgba(255,107,0,0.5), 0 0 ${glow * 2}px rgba(255,107,0,0.2), inset 0 0 30px rgba(0,0,0,0.5)`;
         }
@@ -361,6 +361,13 @@
         setStatus('🎤 Escuchando...', true);
         sphere.classList.remove('talking');
         sphere.classList.add('listening');
+      });
+
+      vapi.on('volume-level', (volume) => {
+        const scale = 1 + volume * 0.25;
+        const glow = Math.round(40 + volume * 60);
+        sphere.style.transform = `scale(${scale})`;
+        sphere.style.boxShadow = `0 0 ${glow}px rgba(255,107,0,0.5), 0 0 ${glow * 2}px rgba(255,107,0,0.2), inset 0 0 30px rgba(0,0,0,0.5)`;
       });
 
       vapi.on('call-end', () => {
