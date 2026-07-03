@@ -80,8 +80,6 @@
       transition: transform 0.1s ease-out;
     }
 
-    /* Disco giratorio con gradiente cónico, más grande que el contenedor
-       para que al rotar no se vean bordes vacíos */
     .orb-spin {
       position: absolute;
       top: 50%;
@@ -112,7 +110,6 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Brillo central tipo "cristal" encima del remolino */
     .orb-sheen {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -285,12 +282,13 @@
         idleFrame = requestAnimationFrame(idleLoop);
         t += 0.016;
 
-        // Velocidad de giro y desenfoque reaccionan al nivel de audio
-        const speed = 1 + currentLevel * 3;
+        // Velocidad de giro: mucho más suave que antes
+        const speed = 1 + currentLevel * 1.2;
         orbSpin.style.animationDuration = (9 / speed) + 's';
 
-        const blurAmount = 18 - currentLevel * 10;
-        orbSpin.style.filter = `blur(${Math.max(6, blurAmount)}px)`;
+        // Desenfoque: cambia menos drásticamente al hablar
+        const blurAmount = 18 - currentLevel * 6;
+        orbSpin.style.filter = `blur(${Math.max(10, blurAmount)}px)`;
 
         const scale = 1 + Math.sin(t * 0.8) * 0.015 + currentLevel * 0.12;
         orbClip.style.transform = `scale(${scale})`;
