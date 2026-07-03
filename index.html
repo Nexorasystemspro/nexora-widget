@@ -67,6 +67,12 @@
       transition: opacity 0.15s ease-out;
     }
 
+    .jitter-wrap {
+      position: relative;
+      width: 180px;
+      height: 180px;
+    }
+
     .orb-clip {
       position: relative;
       width: 180px;
@@ -74,31 +80,39 @@
       border-radius: 50%;
       overflow: hidden;
       z-index: 2;
-      background: #050505;
       box-shadow:
         0 0 0 1px rgba(255,255,255,0.06),
-        inset 0 0 30px rgba(0,0,0,0.5);
+        inset 0 0 30px rgba(0,0,0,0.4);
     }
 
-    /* Manchas de color tipo "blob" que se mezclan (efecto Siri) */
-    .blob {
+    .orb-spin {
       position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 320px;
+      height: 320px;
+      margin: -160px 0 0 -160px;
       border-radius: 50%;
-      filter: blur(22px);
-      mix-blend-mode: screen;
-      will-change: transform;
+      background: conic-gradient(
+        from 0deg,
+        #1a0800 0deg,
+        #FF6B00 45deg,
+        #FFD9A8 90deg,
+        #FF8C00 135deg,
+        #120400 180deg,
+        #B43C00 225deg,
+        #FFFFFF 270deg,
+        #FF6B00 315deg,
+        #1a0800 360deg
+      );
+      filter: blur(18px);
+      animation: spin 22s linear infinite;
+      transition: filter 0.2s ease-out;
     }
-    .blob-1 { width: 130px; height: 130px; background: radial-gradient(circle, #FF6B00 0%, transparent 70%); }
-    .blob-2 { width: 120px; height: 120px; background: radial-gradient(circle, #FFFFFF 0%, transparent 70%); opacity: 0.7; }
-    .blob-3 { width: 110px; height: 110px; background: radial-gradient(circle, #FF8C00 0%, transparent 70%); }
-    .blob-4 { width: 100px; height: 100px; background: radial-gradient(circle, #B43C00 0%, transparent 70%); }
-    .blob-5 { width: 90px; height: 90px; background: radial-gradient(circle, #FFD9A8 0%, transparent 70%); opacity: 0.8; }
 
-    .orb-base {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: #0d0d0d;
-      z-index: 0;
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
 
     .orb-sheen {
@@ -106,11 +120,11 @@
       top: 0; left: 0; right: 0; bottom: 0;
       border-radius: 50%;
       background: radial-gradient(circle at 35% 30%,
-        rgba(255,255,255,0.35) 0%,
-        rgba(255,255,255,0.05) 25%,
+        rgba(255,255,255,0.55) 0%,
+        rgba(255,255,255,0.08) 25%,
         transparent 55%
       );
-      z-index: 5;
+      z-index: 3;
       pointer-events: none;
     }
 
@@ -196,7 +210,12 @@
     @media (max-width: 480px) {
       .orb-wrapper { width: 180px; height: 180px; }
       .orb-outer-glow { width: 180px; height: 180px; }
-      .orb-clip { width: 150px; height: 150px; }
+      .jitter-wrap, .orb-clip { width: 150px; height: 150px; }
+      .orb-spin { width: 270px; height: 270px; margin: -135px 0 0 -135px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .orb-spin { animation: none; }
     }
 
     #vapi-support-btn,
@@ -213,14 +232,11 @@
 
     <div class="orb-wrapper">
       <div class="orb-outer-glow" id="orbGlow"></div>
-      <div class="orb-clip" id="orbClip">
-        <div class="orb-base"></div>
-        <div class="blob blob-1" id="blob1"></div>
-        <div class="blob blob-2" id="blob2"></div>
-        <div class="blob blob-3" id="blob3"></div>
-        <div class="blob blob-4" id="blob4"></div>
-        <div class="blob blob-5" id="blob5"></div>
-        <div class="orb-sheen"></div>
+      <div class="jitter-wrap" id="jitterWrap">
+        <div class="orb-clip">
+          <div class="orb-spin" id="orbSpin"></div>
+          <div class="orb-sheen"></div>
+        </div>
       </div>
     </div>
 
@@ -256,57 +272,44 @@
         config: {}
       });
 
+      const jitterWrap = document.getElementById('jitterWrap');
+      const orbSpin = document.getElementById('orbSpin');
       const orbGlow = document.getElementById('orbGlow');
       const statusEl = document.getElementById('status');
       const statusText = document.getElementById('statusText');
       const btnStart = document.getElementById('btnStart');
       const btnStop = document.getElementById('btnStop');
 
-      const blobs = [
-        { el: document.getElementById('blob1'), rx: 28, ry: 22, sx: 0.7,  sy: 0.9,  phase: 0 },
-        { el: document.getElementById('blob2'), rx: 24, ry: 30, sx: 0.55, sy: 0.65, phase: 1.3 },
-        { el: document.getElementById('blob3'), rx: 32, ry: 18, sx: 0.9,  sy: 0.5,  phase: 2.6 },
-        { el: document.getElementById('blob4'), rx: 20, ry: 26, sx: 0.4,  sy: 0.75, phase: 4.0 },
-        { el: document.getElementById('blob5'), rx: 26, ry: 20, sx: 0.8,  sy: 0.6,  phase: 5.2 }
-      ];
-
       let audioCtx, analyser, source, animFrame;
       let idleFrame;
       let currentLevel = 0;
       let t = 0;
 
-      // --- Movimiento tipo "Siri": manchas de color flotando y mezclándose ---
       function idleLoop() {
         idleFrame = requestAnimationFrame(idleLoop);
+        t += 0.05;
 
-        // Velocidad base lenta en reposo, más rápida al hablar
-        const speed = 0.012 + currentLevel * 0.05;
-        t += speed;
+        const spinSpeed = 1 + currentLevel * 0.5;
+        orbSpin.style.animationDuration = (22 / spinSpeed) + 's';
 
-        const reactiveBoost = 1 + currentLevel * 0.9;
+        const blurAmount = 18 - currentLevel * 6;
+        orbSpin.style.filter = `blur(${Math.max(10, blurAmount)}px)`;
 
-        blobs.forEach((b) => {
-          const x = Math.sin(t * b.sx + b.phase) * b.rx * reactiveBoost;
-          const y = Math.cos(t * b.sy + b.phase * 1.3) * b.ry * reactiveBoost;
-          const scale = 1 + Math.sin(t * 0.6 + b.phase) * 0.08 + currentLevel * 0.25;
-          b.el.style.transform =
-            `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale})`;
-        });
+        const jitterX = (Math.sin(t * 9) * 0.6 + Math.sin(t * 21) * 0.4) * currentLevel * 4;
+        const jitterY = (Math.cos(t * 13) * 0.6 + Math.sin(t * 27) * 0.4) * currentLevel * 4;
+        const jitterRot = (Math.sin(t * 11) * 0.5 + Math.sin(t * 19) * 0.5) * currentLevel * 3;
+        const breathe = 1 + Math.sin(t * 0.4) * 0.01 + currentLevel * 0.1;
 
-        const glowOpacity = 0.5 + currentLevel * 0.5;
-        const glowScale = 1 + currentLevel * 0.28;
+        jitterWrap.style.transform =
+          `translate(${jitterX}px, ${jitterY}px) rotate(${jitterRot}deg) scale(${breathe})`;
+
+        const glowOpacity = 0.55 + currentLevel * 0.45;
+        const glowScale = 1 + currentLevel * 0.25;
         orbGlow.style.opacity = glowOpacity;
         orbGlow.style.transform = `scale(${glowScale})`;
 
         currentLevel += (0 - currentLevel) * 0.1;
       }
-
-      // Posiciona los blobs centrados antes de animar
-      blobs.forEach((b) => {
-        b.el.style.top = '50%';
-        b.el.style.left = '50%';
-        b.el.style.transform = 'translate(-50%, -50%)';
-      });
       idleLoop();
 
       function setStatus(text, active = false) {
