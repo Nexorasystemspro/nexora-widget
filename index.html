@@ -49,30 +49,81 @@
 
     .orb-wrapper {
       position: relative;
-      width: 240px;
-      height: 240px;
+      width: 220px;
+      height: 220px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .orb-glow {
+    .orb-outer-glow {
       position: absolute;
-      width: 240px;
-      height: 240px;
+      width: 220px;
+      height: 220px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,107,0,0.35) 0%, rgba(255,107,0,0.08) 45%, transparent 70%);
-      filter: blur(10px);
+      background: radial-gradient(circle, rgba(255,107,0,0.4) 0%, rgba(255,107,0,0.1) 45%, transparent 70%);
+      filter: blur(12px);
       pointer-events: none;
       transition: opacity 0.4s ease, transform 0.15s ease-out;
     }
 
-    #orbSvg {
-      width: 200px;
-      height: 200px;
+    .orb-clip {
       position: relative;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      overflow: hidden;
       z-index: 2;
-      transition: transform 0.08s ease-out;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.06),
+        inset 0 0 30px rgba(0,0,0,0.4);
+      transition: transform 0.1s ease-out;
+    }
+
+    /* Disco giratorio con gradiente cónico, más grande que el contenedor
+       para que al rotar no se vean bordes vacíos */
+    .orb-spin {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 320px;
+      height: 320px;
+      margin: -160px 0 0 -160px;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        #1a0800 0deg,
+        #FF6B00 45deg,
+        #FFD9A8 90deg,
+        #FF8C00 135deg,
+        #120400 180deg,
+        #B43C00 225deg,
+        #FFFFFF 270deg,
+        #FF6B00 315deg,
+        #1a0800 360deg
+      );
+      filter: blur(18px);
+      animation: spin 9s linear infinite;
+      transition: filter 0.2s ease-out;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Brillo central tipo "cristal" encima del remolino */
+    .orb-sheen {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%,
+        rgba(255,255,255,0.55) 0%,
+        rgba(255,255,255,0.08) 25%,
+        transparent 55%
+      );
+      z-index: 3;
+      pointer-events: none;
     }
 
     .status {
@@ -155,13 +206,14 @@
     }
 
     @media (max-width: 480px) {
-      .orb-wrapper { width: 190px; height: 190px; }
-      .orb-glow { width: 190px; height: 190px; }
-      #orbSvg { width: 160px; height: 160px; }
+      .orb-wrapper { width: 180px; height: 180px; }
+      .orb-outer-glow { width: 180px; height: 180px; }
+      .orb-clip { width: 150px; height: 150px; }
+      .orb-spin { width: 270px; height: 270px; margin: -135px 0 0 -135px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      #orbSvg, .orb-glow { animation: none; transition: none; }
+      .orb-spin { animation: none; }
     }
 
     #vapi-support-btn,
@@ -177,22 +229,11 @@
     <div class="logo">NEXORA <span>SYSTEMS</span></div>
 
     <div class="orb-wrapper">
-      <div class="orb-glow" id="orbGlow"></div>
-      <svg id="orbSvg" viewBox="0 0 200 200">
-        <defs>
-          <radialGradient id="orbGradient" cx="38%" cy="32%" r="70%">
-            <stop offset="0%" stop-color="#FFB066" />
-            <stop offset="30%" stop-color="#FF6B00" />
-            <stop offset="65%" stop-color="#B43C00" />
-            <stop offset="100%" stop-color="#1E0A00" />
-          </radialGradient>
-          <filter id="liquid" x="-50%" y="-50%" width="200%" height="200%">
-            <feTurbulence id="turb" type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="7" result="noise" />
-            <feDisplacementMap id="dispMap" in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" />
-          </filter>
-        </defs>
-        <circle id="orbCircle" cx="100" cy="100" r="72" fill="url(#orbGradient)" filter="url(#liquid)" />
-      </svg>
+      <div class="orb-outer-glow" id="orbGlow"></div>
+      <div class="orb-clip" id="orbClip">
+        <div class="orb-spin" id="orbSpin"></div>
+        <div class="orb-sheen"></div>
+      </div>
     </div>
 
     <div class="status" id="status">
@@ -227,10 +268,9 @@
         config: {}
       });
 
-      const orbSvg = document.getElementById('orbSvg');
+      const orbClip = document.getElementById('orbClip');
+      const orbSpin = document.getElementById('orbSpin');
       const orbGlow = document.getElementById('orbGlow');
-      const turb = document.getElementById('turb');
-      const dispMap = document.getElementById('dispMap');
       const statusEl = document.getElementById('status');
       const statusText = document.getElementById('statusText');
       const btnStart = document.getElementById('btnStart');
@@ -238,32 +278,28 @@
 
       let audioCtx, analyser, source, animFrame;
       let idleFrame;
-      let currentLevel = 0;   // nivel de audio suavizado (0-1)
-      let t = 0;              // reloj interno para la animación idle
+      let currentLevel = 0;
+      let t = 0;
 
-      // --- Animación "idle": el orbe respira suavemente incluso sin audio ---
       function idleLoop() {
         idleFrame = requestAnimationFrame(idleLoop);
-        t += 0.015;
+        t += 0.016;
 
-        // ruido base que ondula solo, más fuerte si hay nivel de audio
-        const baseFreq = 0.01 + Math.sin(t * 0.6) * 0.003;
-        const freq2 = 0.014 + Math.cos(t * 0.4) * 0.004;
-        turb.setAttribute('baseFrequency', `${baseFreq.toFixed(4)} ${freq2.toFixed(4)}`);
+        // Velocidad de giro y desenfoque reaccionan al nivel de audio
+        const speed = 1 + currentLevel * 3;
+        orbSpin.style.animationDuration = (9 / speed) + 's';
 
-        const idleScale = 5 + Math.sin(t) * 2;
-        const reactiveScale = currentLevel * 26;
-        dispMap.setAttribute('scale', (idleScale + reactiveScale).toFixed(1));
+        const blurAmount = 18 - currentLevel * 10;
+        orbSpin.style.filter = `blur(${Math.max(6, blurAmount)}px)`;
 
-        const breathe = 1 + Math.sin(t * 0.8) * 0.02 + currentLevel * 0.18;
-        orbSvg.style.transform = `scale(${breathe})`;
+        const scale = 1 + Math.sin(t * 0.8) * 0.015 + currentLevel * 0.12;
+        orbClip.style.transform = `scale(${scale})`;
 
-        const glowOpacity = 0.5 + currentLevel * 0.5;
-        const glowScale = 1 + currentLevel * 0.25;
+        const glowOpacity = 0.55 + currentLevel * 0.45;
+        const glowScale = 1 + currentLevel * 0.3;
         orbGlow.style.opacity = glowOpacity;
         orbGlow.style.transform = `scale(${glowScale})`;
 
-        // suaviza el nivel hacia 0 cuando no hay audio nuevo
         currentLevel += (0 - currentLevel) * 0.08;
       }
       idleLoop();
@@ -273,7 +309,6 @@
         statusEl.classList.toggle('active', active);
       }
 
-      // --- Audio del propio usuario (micrófono) ---
       function startVisualizer(stream) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         analyser = audioCtx.createAnalyser();
@@ -298,7 +333,6 @@
         if (audioCtx) audioCtx.close();
       }
 
-      // --- Volumen de la voz del asistente (Nexy hablando) ---
       vapi.on('volume-level', (volume) => {
         currentLevel = Math.max(currentLevel, volume);
       });
