@@ -12,14 +12,12 @@
     :root {
       --negro: #0B0B0B;
       --naranja: #FF6B00;
-      --naranja-suave: rgba(255, 107, 0, 0.15);
       --blanco: #FFFFFF;
       --gris: #888888;
-      --gris-claro: #1A1A1A;
     }
 
     html, body {
-      height: 100%;
+      min-height: 100vh;
       background: var(--negro);
       color: var(--blanco);
       font-family: 'Inter', sans-serif;
@@ -27,63 +25,56 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
+      overflow-x: hidden;
     }
 
-    /* ── LOGO ── */
     .logo {
-      position: fixed;
-      top: 28px;
-      left: 50%;
-      transform: translateX(-50%);
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       color: var(--gris);
+      margin-bottom: 32px;
     }
     .logo span { color: var(--naranja); }
 
-    /* ── CONTENEDOR PRINCIPAL ── */
     .main {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 48px;
+      gap: 28px;
       padding: 20px;
+      width: 100%;
     }
 
-    /* ── ESFERA ── */
     .sphere-wrapper {
       position: relative;
-      width: 220px;
-      height: 220px;
+      width: 180px;
+      height: 180px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    /* Anillos externos */
     .ring {
       position: absolute;
       border-radius: 50%;
       border: 1px solid rgba(255, 107, 0, 0.12);
       animation: pulse-ring 3s ease-in-out infinite;
     }
-    .ring-1 { width: 220px; height: 220px; animation-delay: 0s; }
-    .ring-2 { width: 260px; height: 260px; animation-delay: 0.6s; }
-    .ring-3 { width: 300px; height: 300px; animation-delay: 1.2s; }
+    .ring-1 { width: 180px; height: 180px; animation-delay: 0s; }
+    .ring-2 { width: 220px; height: 220px; animation-delay: 0.6s; }
+    .ring-3 { width: 260px; height: 260px; animation-delay: 1.2s; }
 
     @keyframes pulse-ring {
       0%, 100% { opacity: 0.3; transform: scale(1); }
       50% { opacity: 0.7; transform: scale(1.03); }
     }
 
-    /* Esfera principal */
     .sphere {
-      width: 160px;
-      height: 160px;
+      width: 140px;
+      height: 140px;
       border-radius: 50%;
       background: radial-gradient(circle at 38% 35%,
         rgba(255, 140, 40, 0.9) 0%,
@@ -101,7 +92,6 @@
       z-index: 2;
     }
 
-    /* Reflejo */
     .sphere::after {
       content: '';
       position: absolute;
@@ -120,12 +110,6 @@
       50% { transform: scale(1.03); box-shadow: 0 0 55px rgba(255,107,0,0.45), 0 0 100px rgba(255,107,0,0.2), inset 0 0 30px rgba(0,0,0,0.5); }
     }
 
-    /* Estado hablando */
-    .sphere.talking {
-      animation: none;
-    }
-
-    /* Estado escuchando */
     .sphere.listening {
       animation: listening-pulse 1.2s ease-in-out infinite;
     }
@@ -135,16 +119,33 @@
       50% { transform: scale(1.05); box-shadow: 0 0 60px rgba(255,107,0,0.5), 0 0 100px rgba(255,107,0,0.25), inset 0 0 30px rgba(0,0,0,0.5); }
     }
 
-    /* ── ESTADO ── */
+    .sphere.talking { animation: none; }
+
+    .audio-bars {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 28px;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .audio-bars.visible { opacity: 1; }
+
+    .bar {
+      width: 3px;
+      border-radius: 2px;
+      background: var(--naranja);
+      height: 4px;
+      transition: height 0.05s ease;
+    }
+
     .status {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--gris);
-      height: 20px;
-      transition: color 0.3s;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -166,21 +167,20 @@
       50% { opacity: 0.3; }
     }
 
-    /* ── BOTÓN ── */
     .btn-wrapper {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
     }
 
     .btn {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      padding: 16px 48px;
+      padding: 14px 44px;
       border-radius: 100px;
       border: none;
       cursor: pointer;
@@ -213,38 +213,17 @@
     }
 
     .hint {
-      font-size: 11px;
+      font-size: 10px;
       color: rgba(255,255,255,0.2);
       letter-spacing: 0.05em;
     }
 
-    /* ── ONDAS DE AUDIO (visualizador) ── */
-    .audio-bars {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      height: 32px;
-      opacity: 0;
-      transition: opacity 0.4s;
-    }
-
-    .audio-bars.visible { opacity: 1; }
-
-    .bar {
-      width: 3px;
-      border-radius: 2px;
-      background: var(--naranja);
-      height: 4px;
-      transition: height 0.05s ease;
-    }
-
-    /* ── RESPONSIVE ── */
     @media (max-width: 480px) {
-      .sphere { width: 130px; height: 130px; }
-      .sphere-wrapper { width: 180px; height: 180px; }
-      .ring-1 { width: 180px; height: 180px; }
-      .ring-2 { width: 220px; height: 220px; }
-      .ring-3 { width: 260px; height: 260px; }
+      .sphere { width: 110px; height: 110px; }
+      .sphere-wrapper { width: 150px; height: 150px; }
+      .ring-1 { width: 150px; height: 150px; }
+      .ring-2 { width: 190px; height: 190px; }
+      .ring-3 { width: 230px; height: 230px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -254,11 +233,9 @@
 </head>
 <body>
 
-  <div class="logo">NEXORA <span>SYSTEMS</span></div>
-
   <div class="main">
+    <div class="logo">NEXORA <span>SYSTEMS</span></div>
 
-    <!-- Esfera -->
     <div class="sphere-wrapper">
       <div class="ring ring-1"></div>
       <div class="ring ring-2"></div>
@@ -266,7 +243,6 @@
       <div class="sphere" id="sphere"></div>
     </div>
 
-    <!-- Barras de audio -->
     <div class="audio-bars" id="audioBars">
       <div class="bar" id="b1"></div>
       <div class="bar" id="b2"></div>
@@ -277,22 +253,18 @@
       <div class="bar" id="b7"></div>
     </div>
 
-    <!-- Estado -->
     <div class="status" id="status">
       <div class="status-dot"></div>
       <span id="statusText">Listo para hablar</span>
     </div>
 
-    <!-- Botones -->
     <div class="btn-wrapper">
       <button class="btn btn-start" id="btnStart">Iniciar conversación</button>
       <button class="btn btn-stop" id="btnStop">Finalizar llamada</button>
       <span class="hint">Necesitas micrófono · Chrome o Safari</span>
     </div>
-
   </div>
 
-  <!-- Vapi Web SDK -->
   <script>
     (function(d, t) {
       var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
@@ -316,7 +288,6 @@
       const bars = [b1, b2, b3, b4, b5, b6, b7];
 
       let audioCtx, analyser, source, animFrame;
-      let isTalking = false;
 
       function setStatus(text, active = false) {
         statusText.textContent = text;
@@ -326,7 +297,7 @@
       function animateBars(dataArray) {
         bars.forEach((bar, i) => {
           const val = dataArray[i * 3 + 2] || 0;
-          const h = Math.max(4, (val / 255) * 28);
+          const h = Math.max(4, (val / 255) * 24);
           bar.style.height = h + 'px';
         });
       }
@@ -343,7 +314,6 @@
           animFrame = requestAnimationFrame(loop);
           analyser.getByteFrequencyData(dataArray);
           animateBars(dataArray);
-
           const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
           const scale = 1 + (avg / 255) * 0.15;
           const glow = Math.round(40 + (avg / 255) * 40);
@@ -362,7 +332,6 @@
         bars.forEach(b => b.style.height = '4px');
       }
 
-      // Eventos Vapi
       vapi.on('call-start', () => {
         btnStart.style.display = 'none';
         btnStop.style.display = 'inline-flex';
@@ -371,20 +340,16 @@
       });
 
       vapi.on('speech-start', () => {
-        // Agente hablando
         setStatus('🔊 Hablando...', true);
         sphere.classList.remove('listening');
         sphere.classList.add('talking');
         audioBars.classList.add('visible');
-        isTalking = true;
       });
 
       vapi.on('speech-end', () => {
-        // Agente dejó de hablar
         setStatus('🎤 Escuchando...', true);
         sphere.classList.remove('talking');
         sphere.classList.add('listening');
-        isTalking = false;
       });
 
       vapi.on('call-end', () => {
@@ -401,7 +366,6 @@
         setStatus('Error de conexión', false);
       });
 
-      // Iniciar
       btnStart.addEventListener('click', async () => {
         setStatus('Iniciando...', true);
         try {
@@ -415,7 +379,6 @@
         }
       });
 
-      // Finalizar
       btnStop.addEventListener('click', () => {
         vapi.stop();
       });
