@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexy Live — Nexora Systems</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --negro: #0B0B0B;
+      --naranja: #FF6B00;
+      --naranja-suave: rgba(255, 107, 0, 0.15);
+      --blanco: #FFFFFF;
+      --gris: #888888;
+      --gris-claro: #1A1A1A;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--negro);
+      color: var(--blanco);
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* ── LOGO ── */
+    .logo {
+      position: fixed;
+      top: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gris);
+    }
+    .logo span { color: var(--naranja); }
+
+    /* ── CONTENEDOR PRINCIPAL ── */
+    .main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 48px;
+      padding: 20px;
+    }
+
+    /* ── ESFERA ── */
+    .sphere-wrapper {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Anillos externos */
+    .ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 107, 0, 0.12);
+      animation: pulse-ring 3s ease-in-out infinite;
+    }
+    .ring-1 { width: 220px; height: 220px; animation-delay: 0s; }
+    .ring-2 { width: 260px; height: 260px; animation-delay: 0.6s; }
+    .ring-3 { width: 300px; height: 300px; animation-delay: 1.2s; }
+
+    @keyframes pulse-ring {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.03); }
+    }
+
+    /* Esfera principal */
+    .sphere {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 35%,
+        rgba(255, 140, 40, 0.9) 0%,
+        rgba(255, 107, 0, 0.75) 30%,
+        rgba(180, 60, 0, 0.6) 60%,
+        rgba(30, 10, 0, 0.95) 100%
+      );
+      box-shadow:
+        0 0 40px rgba(255, 107, 0, 0.35),
+        0 0 80px rgba(255, 107, 0, 0.15),
+        inset 0 0 30px rgba(0,0,0,0.5);
+      transition: transform 0.05s ease-out, box-shadow 0.05s ease-out;
+      animation: idle-breathe 4s ease-in-out infinite;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Reflejo */
+    .sphere::after {
+      content: '';
+      position: absolute;
+      top: 18%;
+      left: 22%;
+      width: 32%;
+      height: 20%;
+      background: rgba(255,255,255,0.18);
+      border-radius: 50%;
+      filter: blur(6px);
+      transform: rotate(-30deg);
+    }
+
+    @keyframes idle-breathe {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(255,107,0,0.35), 0 0 80px rgba(255,107,0,0.15), inset 0 0 30px rgba(0,0,0,0.5); }
+      50% { transform: scale(1.03); box-shadow: 0 0 55px rgba(255,107,0,0.45), 0 0 100px rgba(255,107,0,0.2), inset 0 0 30px rgba(0,0,0,0.5); }
+    }
+
+    /* Estado hablando */
+    .sphere.talking {
+      animation: none;
+    }
+
+    /* Estado escuchando */
+    .sphere.listening {
+      animation: listening-pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes listening-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); box-shadow: 0 0 60px rgba(255,107,0,0.5), 0 0 100px rgba(255,107,0,0.25), inset 0 0 30px rgba(0,0,0,0.5); }
+    }
+
+    /* ── ESTADO ── */
+    .status {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gris);
+      height: 20px;
+      transition: color 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gris);
+      transition: background 0.3s;
+    }
+
+    .status.active .status-dot { background: var(--naranja); animation: blink 1s infinite; }
+    .status.active { color: var(--blanco); }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ── BOTÓN ── */
+    .btn-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 16px 48px;
+      border-radius: 100px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      outline: none;
+    }
+
+    .btn-start {
+      background: var(--naranja);
+      color: var(--blanco);
+      box-shadow: 0 0 24px rgba(255, 107, 0, 0.3);
+    }
+
+    .btn-start:hover {
+      background: #FF8C00;
+      box-shadow: 0 0 36px rgba(255, 107, 0, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-stop {
+      background: transparent;
+      color: var(--gris);
+      border: 1px solid rgba(255,255,255,0.1);
+      display: none;
+    }
+
+    .btn-stop:hover {
+      border-color: rgba(255,255,255,0.25);
+      color: var(--blanco);
+    }
+
+    .hint {
+      font-size: 11px;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── ONDAS DE AUDIO (visualizador) ── */
+    .audio-bars {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 32px;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .audio-bars.visible { opacity: 1; }
+
+    .bar {
+      width: 3px;
+      border-radius: 2px;
+      background: var(--naranja);
+      height: 4px;
+      transition: height 0.05s ease;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 480px) {
+      .sphere { width: 130px; height: 130px; }
+      .sphere-wrapper { width: 180px; height: 180px; }
+      .ring-1 { width: 180px; height: 180px; }
+      .ring-2 { width: 220px; height: 220px; }
+      .ring-3 { width: 260px; height: 260px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .sphere, .ring { animation: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="logo">NEXORA <span>SYSTEMS</span></div>
+
+  <div class="main">
+
+    <!-- Esfera -->
+    <div class="sphere-wrapper">
+      <div class="ring ring-1"></div>
+      <div class="ring ring-2"></div>
+      <div class="ring ring-3"></div>
+      <div class="sphere" id="sphere"></div>
+    </div>
+
+    <!-- Barras de audio -->
+    <div class="audio-bars" id="audioBars">
+      <div class="bar" id="b1"></div>
+      <div class="bar" id="b2"></div>
+      <div class="bar" id="b3"></div>
+      <div class="bar" id="b4"></div>
+      <div class="bar" id="b5"></div>
+      <div class="bar" id="b6"></div>
+      <div class="bar" id="b7"></div>
+    </div>
+
+    <!-- Estado -->
+    <div class="status" id="status">
+      <div class="status-dot"></div>
+      <span id="statusText">Listo para hablar</span>
+    </div>
+
+    <!-- Botones -->
+    <div class="btn-wrapper">
+      <button class="btn btn-start" id="btnStart">Iniciar conversación</button>
+      <button class="btn btn-stop" id="btnStop">Finalizar llamada</button>
+      <span class="hint">Necesitas micrófono · Chrome o Safari</span>
+    </div>
+
+  </div>
+
+  <!-- Vapi Web SDK -->
+  <script>
+    (function(d, t) {
+      var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
+      g.src = "https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi.js";
+      g.onload = initVapi;
+      s.parentNode.insertBefore(g, s);
+    })(document, 'script');
+
+    function initVapi() {
+      const PUBLIC_KEY = '1fb6beeb-c606-4390-8f75-7894249bac0b';
+      const ASSISTANT_ID = 'a9735b99-0fe6-446c-86f1-7e50d6ce53b2';
+
+      const vapi = new window.Vapi(PUBLIC_KEY);
+
+      const sphere = document.getElementById('sphere');
+      const statusEl = document.getElementById('status');
+      const statusText = document.getElementById('statusText');
+      const btnStart = document.getElementById('btnStart');
+      const btnStop = document.getElementById('btnStop');
+      const audioBars = document.getElementById('audioBars');
+      const bars = [b1, b2, b3, b4, b5, b6, b7];
+
+      let audioCtx, analyser, source, animFrame;
+      let isTalking = false;
+
+      function setStatus(text, active = false) {
+        statusText.textContent = text;
+        statusEl.classList.toggle('active', active);
+      }
+
+      function animateBars(dataArray) {
+        bars.forEach((bar, i) => {
+          const val = dataArray[i * 3 + 2] || 0;
+          const h = Math.max(4, (val / 255) * 28);
+          bar.style.height = h + 'px';
+        });
+      }
+
+      function startVisualizer(stream) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 64;
+        source = audioCtx.createMediaStreamSource(stream);
+        source.connect(analyser);
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        function loop() {
+          animFrame = requestAnimationFrame(loop);
+          analyser.getByteFrequencyData(dataArray);
+          animateBars(dataArray);
+
+          const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+          const scale = 1 + (avg / 255) * 0.15;
+          const glow = Math.round(40 + (avg / 255) * 40);
+          sphere.style.transform = `scale(${scale})`;
+          sphere.style.boxShadow = `0 0 ${glow}px rgba(255,107,0,0.5), 0 0 ${glow * 2}px rgba(255,107,0,0.2), inset 0 0 30px rgba(0,0,0,0.5)`;
+        }
+        loop();
+      }
+
+      function stopVisualizer() {
+        cancelAnimationFrame(animFrame);
+        if (source) source.disconnect();
+        if (audioCtx) audioCtx.close();
+        sphere.style.transform = '';
+        sphere.style.boxShadow = '';
+        bars.forEach(b => b.style.height = '4px');
+      }
+
+      // Eventos Vapi
+      vapi.on('call-start', () => {
+        btnStart.style.display = 'none';
+        btnStop.style.display = 'inline-flex';
+        setStatus('Conectando...', true);
+        sphere.classList.add('listening');
+      });
+
+      vapi.on('speech-start', () => {
+        // Agente hablando
+        setStatus('🔊 Hablando...', true);
+        sphere.classList.remove('listening');
+        sphere.classList.add('talking');
+        audioBars.classList.add('visible');
+        isTalking = true;
+      });
+
+      vapi.on('speech-end', () => {
+        // Agente dejó de hablar
+        setStatus('🎤 Escuchando...', true);
+        sphere.classList.remove('talking');
+        sphere.classList.add('listening');
+        isTalking = false;
+      });
+
+      vapi.on('call-end', () => {
+        btnStart.style.display = 'inline-flex';
+        btnStop.style.display = 'none';
+        setStatus('Listo para hablar', false);
+        sphere.classList.remove('talking', 'listening');
+        audioBars.classList.remove('visible');
+        stopVisualizer();
+      });
+
+      vapi.on('error', (e) => {
+        console.error('Vapi error:', e);
+        setStatus('Error de conexión', false);
+      });
+
+      // Iniciar
+      btnStart.addEventListener('click', async () => {
+        setStatus('Iniciando...', true);
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          startVisualizer(stream);
+          await vapi.start(ASSISTANT_ID);
+        } catch (err) {
+          console.error(err);
+          setStatus('Necesitas dar permiso al micrófono', false);
+          stopVisualizer();
+        }
+      });
+
+      // Finalizar
+      btnStop.addEventListener('click', () => {
+        vapi.stop();
+      });
+    }
+  </script>
+
+</body>
+</html>
